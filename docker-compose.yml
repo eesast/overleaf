@@ -11,7 +11,6 @@ services:
                 condition: service_healthy
             redis:
                 condition: service_started
-        privileged: true
         ports:
             - 80:80
         links:
@@ -39,7 +38,7 @@ services:
 
             # Enables Thumbnail generation using ImageMagick
             ENABLE_CONVERSIONS: 'true'
-            
+
             # Disables email confirmation requirement
             EMAIL_CONFIRMATION_DISABLED: 'true'
 
@@ -117,7 +116,7 @@ services:
 
     redis:
         restart: always
-        image: redis:5.0.0
+        image: redis:5
         container_name: redis
         expose:
             - 6379
