@@ -37,6 +37,47 @@ module.exports = (grunt) ->
 						"""
 						done()
 
+	grunt.registerTask 'user:create', "Create a user with the given email address and send an activation email. Update in place if the user already exists. Usage: grunt user:create --email joe@example.com", () ->
+		done = @async()
+		email = grunt.option("email")
+		if !email?
+			console.error "Usage: grunt user:create --email=joe@example.com"
+			process.exit(1)
+
+		settings = require "settings-sharelatex"
+		UserRegistrationHandler = require "../web/app/src/Features/User/UserRegistrationHandler"
+		OneTimeTokenHandler = require "../web/app/src/Features/Security/OneTimeTokenHandler"
+		EmailHandler = require "../web/app/src/Features/Email/EmailHandler"
+		UserRegistrationHandler.registerNewUser {
+			email: email
+			password: require("crypto").randomBytes(32).toString("hex")
+		}, (error, user) ->
+			if error? and error?.message != "EmailAlreadyRegistered"
+				throw error
+			if error? and error?.message == "EmailAlreadyRegistered"
+				console.log "user already exists, resending welcome email"
+
+			ONE_WEEK = 7 * 24 * 60 * 60 # seconds
+			OneTimeTokenHandler.getNewToken "password", { expiresIn: ONE_WEEK, email: user.email, user_id: user._id.toString() }, (err, token)->
+				return next(err) if err?
+
+				setNewPasswordUrl = "#{settings.siteUrl}/user/activate?token=#{token}&user_id=#{user._id}"
+
+				EmailHandler.sendEmail 'registered', { to: user.email, setNewPasswordUrl: setNewPasswordUrl }, (err)->
+					if err?
+						throw err
+
+					console.log ""
+					console.log """
+						Successfully created #{email} as a normal user.
+
+						Please check the email or visit the following URL to set a password for #{email} and log in:
+
+							#{setNewPasswordUrl}
+
+					"""
+					done()
+
 	grunt.registerTask 'user:delete', "deletes a user and all their data, Usage: grunt user:delete --email joe@example.com", () ->
 		done = @async()
 		email = grunt.option("email")

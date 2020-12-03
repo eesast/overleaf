@@ -65,6 +65,7 @@ RUN mkdir /install-tl-unx \
 &&  tlmgr install --repository ${TEXLIVE_MIRROR} \
       latexmk \
       texcount \
+      scheme-full \
     \
 &&  rm -rf /install-tl-unx
 
