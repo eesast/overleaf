@@ -1,8 +1,0 @@
-dist: bionic
-services:
-  - docker
-script:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker build -t eesast/overleaf-base:latest -f Dockerfile-base .
-  - docker build -t eesast/overleaf:latest .
-  - docker push eesast/overleaf:latest
